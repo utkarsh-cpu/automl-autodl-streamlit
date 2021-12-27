@@ -7,18 +7,20 @@ st.set_page_config(page_title='Neural Network Playground', page_icon='🏛️')
 st.title("Neural Network Playground")
 st.subheader('')
 with st.expander('Dataset'):
-    data_file=st.file_uploader("Upload A Dataset")
+    data_file=st.file_uploader("Upload A Dataset",accept_multiple_files=True)
     st.write("OR")
-    datasets=dict({'None':None,'Boston Housing Dataset':sk.load_boston,'Iris dataset':sk.load_iris,'Diabetes datset':sk.load_diabetes,'Wine Dataset':sk.load_wine,'Linnerud Datset':sk.load_linnerud})
+    datasets=dict({'None':None,'Boston Housing Dataset':sk.load_boston(),'Iris dataset':sk.load_iris(),'Diabetes datset':sk.load_diabetes(),'Wine Dataset':sk.load_wine(),'Linnerud Datset':sk.load_linnerud()})
     option=st.selectbox("Choose the preconceived datatset",datasets.keys())
     c_or_r=dict({'Classification':'c','Regression':'r'})
     c_r=st.radio('Type of dataset: ',c_or_r.keys())
     if data_file is None and option=='None':
         st.error('No dataset detected')
     elif data_file is None and option!='None':
-        actual_data=datasets[option]
+        actual_data=datasets[option].data
+        actual_values=datasets[option].target
     elif data_file is not None and option=='None':
-        actual_data=pd.read_csv(data_file)
+        actual_data=pd.read_csv(data_file[0])
+        actual_values=pd.read_csv(data_file[1])
     else:
         st.error('Only one dataset allowed')
     
@@ -52,9 +54,11 @@ list_of_metrics_func['top_k_categorical_accuracy']='top_k_categorical_accuracy :
 
 Optimizers=st.selectbox('Optimizers',list_of_optimizers)
 Loss_func=st.selectbox('Loss Function',list_of_loss_func.values())
-list_of_metrics_func=st.multiselect('Metrics for the model',list_of_metrics_func.values())
+list_of_metrics_function=st.multiselect('Metrics for the model',list_of_metrics_func.values())
+epoch=st.number_input("No. of Epoch",min_value=1)
 
-st.button('Run the given model', on_click=model_making())
+st.button('Run the given model', on_click=model_making(actual_data,actual_values,nooflayers,length,activation_function,c_r,Optimizers,Loss_func,list_of_metrics_function,epoch))
+
 
 
 
