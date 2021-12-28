@@ -22,17 +22,17 @@ def model_making(train_data,train_value,nooflayers,length,activation_function,c_
         model.add(tf.keras.layers.Dense(1))
     
     model.compile(optimizer=optimizers,loss=loss_function,metrics=metrics)
-    history=model.fit(train_data,train_value,epoch)
+    history=model.fit(train_data,train_value,epochs=epoch)
     return model,history
 
 st.set_page_config(page_title='Neural Network Playground', page_icon='🏛️')
 st.title("Neural Network Playground")
 st.subheader('')
 with st.expander('Dataset'):
-    '''
+    
     data_file=st.file_uploader("Upload A Dataset",accept_multiple_files=True)
     st.write("OR")
-    '''
+   
     datasets=dict({'None':None,'Boston Housing Dataset':sk.load_boston(),'Iris dataset':sk.load_iris(),'Diabetes datset':sk.load_diabetes(),'Wine Dataset':sk.load_wine(),'Linnerud Datset':sk.load_linnerud()})
     option=st.selectbox("Choose the preconceived datatset",datasets.keys())
     c_or_r=dict({'Classification':'c','Regression':'r'})
@@ -41,8 +41,8 @@ with st.expander('Dataset'):
     if  option=='None':
         st.error('No dataset detected')
     elif  option!='None':
-        actual_data=datasets[option].data[:len(datasets[option].data)-2,:]
-        actual_values=datasets[option].target[:len(datasets[option].data)-2]
+        actual_data=datasets[option].data[:int(0.7*len(datasets[option].data)),:]
+        actual_values=datasets[option].target[:int(0.7*len(datasets[option].data))]
     
 nooflayers=st.number_input("No.of hidden layers",min_value=1)
 length=[]
@@ -71,7 +71,9 @@ list_of_loss_func=dict({'mse': ' mse : Computes the mean squared error between l
 'squared_hinge': ' squared_hinge : Computes the squared hinge loss between y_true and y_pred'})
 list_of_metrics_func=list_of_loss_func.copy()
 list_of_metrics_func['top_k_categorical_accuracy']='top_k_categorical_accuracy : Computes how often targets are in the top K predictions.'
-
+list_of_metrics_func['sparse_categorical_accuracy']='sparse_categorical_accuracy : Calculates how often predictions equal labels.'
+list_of_metrics_func['sparse_top_k_categorical_accuracy']='sparse_top_k_categorical_accuracy :  Computes how often integer targets are in the top K predictions.'
+list_of_metrics_func['categorical_accuracy']='categorical_accuracy(...): Calculates how often predictions match one-hot labels.'
 Optimizers=st.selectbox('Optimizers',list_of_optimizers)
 Loss_func=methodofkeys(list_of_loss_func,st.selectbox('Loss Function',list_of_loss_func.values()))
 list_of_metrics_function=st.multiselect('Metrics for the model',list_of_metrics_func.values())
@@ -81,7 +83,8 @@ if st.button('Run the given model'):
     k,history=model_making(actual_data,actual_values,nooflayers,length,activation_function,c_r,Optimizers,Loss_func,keys_of_metric_function,epoch)
     history = pd.DataFrame.from_dict(history.history)
     st.dataframe(history)
-
+    val=k.evaluate(datasets[option].data[:int(0.2*len(datasets[option].data)),:],datasets[option].target[:int(0.2*len(datasets[option].data))],verbose=2)
+    st.write(val)
 
 
     
