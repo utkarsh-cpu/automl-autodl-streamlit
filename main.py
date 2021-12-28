@@ -1,27 +1,48 @@
 import streamlit as st
 import sklearn.datasets as sk
 import pandas as pd
-from model import model_making
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from tensorflow import keras
+import matplotlib.pyplot as plt
+
+def methodofkeys(dict, search_iter):
+    for iter1, iter2 in dict.items():
+        if iter2 == search_iter:
+            return iter1
+def model_making(train_data,train_value,nooflayers,length,activation_function,c_r,optimizers,loss_function,metrics,epoch):
+    model=keras.Sequential()
+    model.add(tf.keras.Input(shape=(len(train_data[0]),)))
+    for i in range(nooflayers):
+        model.add(tf.keras.layers.Dense(length[i],activation=activation_function[i]))
+    if(c_r=='c'):
+        model.add(tf.keras.layers.Dense(len(train_value.value_counts())))
+    elif(c_r=='r'):
+        model.add(tf.keras.layers.Dense(1))
+    
+    model.compile(optimizer=optimizers,loss=loss_function,metrics=metrics)
+    history=model.fit(train_data,train_value,epoch)
+    return model,history
+
 st.set_page_config(page_title='Neural Network Playground', page_icon='🏛️')
 st.title("Neural Network Playground")
 st.subheader('')
 with st.expander('Dataset'):
+    '''
     data_file=st.file_uploader("Upload A Dataset",accept_multiple_files=True)
     st.write("OR")
+    '''
     datasets=dict({'None':None,'Boston Housing Dataset':sk.load_boston(),'Iris dataset':sk.load_iris(),'Diabetes datset':sk.load_diabetes(),'Wine Dataset':sk.load_wine(),'Linnerud Datset':sk.load_linnerud()})
     option=st.selectbox("Choose the preconceived datatset",datasets.keys())
     c_or_r=dict({'Classification':'c','Regression':'r'})
     c_r=st.radio('Type of dataset: ',c_or_r.keys())
-    if data_file is None and option=='None':
+    c_r=c_or_r[c_r]
+    if  option=='None':
         st.error('No dataset detected')
-    elif data_file is None and option!='None':
-        actual_data=datasets[option].data
-        actual_values=datasets[option].target
-    elif data_file is not None and option=='None':
-        actual_data=pd.read_csv(data_file[0])
-        actual_values=pd.read_csv(data_file[1])
-    else:
-        st.error('Only one dataset allowed')
+    elif  option!='None':
+        actual_data=datasets[option].data[:len(datasets[option].data)-2,:]
+        actual_values=datasets[option].target[:len(datasets[option].data)-2]
     
 nooflayers=st.number_input("No.of hidden layers",min_value=1)
 length=[]
@@ -52,15 +73,14 @@ list_of_metrics_func=list_of_loss_func.copy()
 list_of_metrics_func['top_k_categorical_accuracy']='top_k_categorical_accuracy : Computes how often targets are in the top K predictions.'
 
 Optimizers=st.selectbox('Optimizers',list_of_optimizers)
-Loss_func=st.selectbox('Loss Function',list_of_loss_func.values())
+Loss_func=methodofkeys(list_of_loss_func,st.selectbox('Loss Function',list_of_loss_func.values()))
 list_of_metrics_function=st.multiselect('Metrics for the model',list_of_metrics_func.values())
+keys_of_metric_function=[methodofkeys(list_of_metrics_func,i) for i in list_of_metrics_function]
 epoch=st.number_input("No. of Epoch",min_value=1)
-
-st.button('Run the given model', on_click=model_making(actual_data,actual_values,nooflayers,length,activation_function,c_r,Optimizers,Loss_func,list_of_metrics_function,epoch))
-
-
-
-
+if st.button('Run the given model'):
+    k,history=model_making(actual_data,actual_values,nooflayers,length,activation_function,c_r,Optimizers,Loss_func,keys_of_metric_function,epoch)
+    history = pd.DataFrame.from_dict(history.history)
+    st.dataframe(history)
 
 
 

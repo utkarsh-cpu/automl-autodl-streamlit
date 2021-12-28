@@ -16,5 +16,6 @@ def model_making(train_data,train_value,nooflayers,length,activation_function,c_
         model.add(tf.keras.Dense(len(train_value[0])))
     
     model.compile(optimizer=optimizers,loss=loss_function,metrics=metrics)
-    return model.fit(train_data,train_value,epoch)
+    model.fit(train_data,train_value,epoch)
+    
 
