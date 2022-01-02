@@ -1,3 +1,4 @@
+import imp
 import streamlit as st
 import sklearn.datasets as sk
 import pandas as pd
@@ -6,6 +7,7 @@ import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
 import matplotlib.pyplot as plt
+import autokerasmodel as model
 
 def methodofkeys(dict, search_iter):
     for iter1, iter2 in dict.items():
@@ -27,7 +29,6 @@ def model_making(train_data,train_value,nooflayers,length,activation_function,c_
 
 st.set_page_config(page_title='Neural Network Playground', page_icon='🏛️')
 st.title("Neural Network Playground")
-st.subheader('')
 with st.expander('Dataset'):
     
     data_file=st.file_uploader("Upload A Dataset",accept_multiple_files=True)
