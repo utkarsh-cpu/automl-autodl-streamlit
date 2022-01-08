@@ -39,31 +39,47 @@ list_of_metrics_func['categorical_accuracy']='categorical_accuracy(...): Calcula
 st.set_page_config(page_title='Neural Network Playground', page_icon='🏛️')
 st.title("Neural Network Playground")
 with st.expander('Dataset'): 
-    data_file=st.file_uploader("Upload A Dataset",accept_multiple_files=True)
-    st.write("OR")
-   
-    datasets=dict({'None':None,'California Housing Dataset':sk.fetch_california_housing(),'Iris dataset':sk.load_iris(),'Diabetes datset':sk.load_diabetes(),'Wine Dataset':sk.load_wine(),'Linnerud Datset':sk.load_linnerud()})
-    option=st.selectbox("Choose the preconceived datatset",datasets.keys())
+    is_dataset_uploaded_or_dataset_from_libraries=st.radio("Upload Dataset or Preconceived Dataset",['Upload Dataset','Preconceived Dataset'])
+    if(is_dataset_uploaded_or_dataset_from_libraries=='Upload Dataset'):
+        data_train_file=st.file_uploader("Upload Training Dataset",accept_multiple_files=True)
+        train_data=pd.read_csv(data_train_file[0])
+        is_val_file_exist=st.selectbox('Is there a validation dataset',['No','Yes'])
+        if(is_val_file_exist=='Yes'):
+            data_val_file=st.file_uploader("Upload Validation Dataset",accept_multiple_files=True)
+        is_test_file_exist=st.selectbox('Is there a testing dataset',['No','Yes'])
+        if(is_test_file_exist=='Yes'):
+            data_test_file=st.file_uploader("Upload Testing Dataset",accept_multiple_files=True)
+        if(data_train_file!=None):
+            columns_for_data=st.multiselect('Which columns are required for training and testing',train_data.columns)
+            columns_for_values=st.multiselect('Which columns are output columns',train_data.columns)
+            actual_data=train_data[columns_for_data]
+            actual_values=train_data[columns_for_values]
+        
+
+    if(is_dataset_uploaded_or_dataset_from_libraries=='Preconceived Dataset'):
+        datasets=dict({'None':None,'California Housing Dataset':sk.fetch_california_housing(as_frame=True),'Iris dataset':sk.load_iris(as_frame=True),'Diabetes datset':sk.load_diabetes(as_frame=True),'Wine Dataset':sk.load_wine(as_frame=True),'Linnerud Datset':sk.load_linnerud(as_frame=True)})
+        option=st.selectbox("Choose the preconceived datatset",datasets.keys())
+        columns_for_data=st.multiselect('Which columns are required for training and testing',datasets[option].frame.columns)
+        columns_for_values=st.multiselect('Which columns are output columns',datasets[option].frame.columns)
+        if option=='None':
+           st.error('No dataset detected')
+        elif  option!='None':
+           actual_data=datasets[option].frame[columns_for_data]
+           actual_values=datasets[option].frame[columns_for_values]
     c_or_r=dict({'Classification':'c','Regression':'r'})
     c_r=st.radio('Type of dataset: ',c_or_r.keys())
     c_r=c_or_r[c_r]
-    if  option=='None':
-        st.error('No dataset detected')
-    elif  option!='None':
-        actual_data=datasets[option].data
-        actual_values=datasets[option].target
-    if(st.button("Basic information about data")):
-        st.write('Type of  Dataset = '+methodofkeys(c_or_r,c_r))
+    button_1=st.button("Basic information about data")
+    if(button_1):
+        st.write('Type of Dataset = '+methodofkeys(c_or_r,c_r))
         st.write('Length of Data = ', len(actual_data))
-        st.write('No. of features = ', len(actual_data[0]))
+        st.write('No. of features = ', len(columns_for_data))
         if(c_r=='c'):
-            st.write('No. of classes = ', len(pd.DataFrame(actual_values).value_counts()))
+            st.write('No. of classes = ', len(actual_values.value_counts()))
         elif(c_r=='r'):
-            if(type(actual_values[0])==np.float64):
-                st.write('No. of target variables = ',1)
-            else:
-                st.write('No. of target variables = ',len(actual_values[0]))  
-        st.dataframe(pd.DataFrame(actual_data,columns=datasets[option]['feature_names']).describe())
+            st.write('No. of target variables = ',len(columns_for_values))  
+        st.dataframe(actual_data.describe())
+    
 
 type_of_method=['None','AutoML','Custom']
 method_type=st.radio('Type of Process Of Finding Model',type_of_method)
