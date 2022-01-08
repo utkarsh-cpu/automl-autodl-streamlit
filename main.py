@@ -36,20 +36,21 @@ list_of_metrics_func['top_k_categorical_accuracy']='top_k_categorical_accuracy :
 list_of_metrics_func['sparse_categorical_accuracy']='sparse_categorical_accuracy : Calculates how often predictions equal labels.'
 list_of_metrics_func['sparse_top_k_categorical_accuracy']='sparse_top_k_categorical_accuracy :  Computes how often integer targets are in the top K predictions.'
 list_of_metrics_func['categorical_accuracy']='categorical_accuracy(...): Calculates how often predictions match one-hot labels.'
+list_of_metrics_func['accuracy']='accuracy(...): Calculates how often predictions equal labels.'
 st.set_page_config(page_title='Neural Network Playground', page_icon='🏛️')
 st.title("Neural Network Playground")
 with st.expander('Dataset'): 
     is_dataset_uploaded_or_dataset_from_libraries=st.radio("Upload Dataset or Preconceived Dataset",['Upload Dataset','Preconceived Dataset'])
     if(is_dataset_uploaded_or_dataset_from_libraries=='Upload Dataset'):
-        data_train_file=st.file_uploader("Upload Training Dataset",accept_multiple_files=True)
-        train_data=pd.read_csv(data_train_file[0])
+        data_train_file=st.file_uploader("Upload Training Dataset")
         is_val_file_exist=st.selectbox('Is there a validation dataset',['No','Yes'])
         if(is_val_file_exist=='Yes'):
-            data_val_file=st.file_uploader("Upload Validation Dataset",accept_multiple_files=True)
+            data_val_file=st.file_uploader("Upload Validation Dataset")
         is_test_file_exist=st.selectbox('Is there a testing dataset',['No','Yes'])
         if(is_test_file_exist=='Yes'):
-            data_test_file=st.file_uploader("Upload Testing Dataset",accept_multiple_files=True)
-        if(data_train_file!=None):
+            data_test_file=st.file_uploader("Upload Testing Dataset")
+        if(data_train_file is not None):
+            train_data=pd.read_csv(data_train_file)
             columns_for_data=st.multiselect('Which columns are required for training and testing',train_data.columns)
             columns_for_values=st.multiselect('Which columns are output columns',train_data.columns)
             actual_data=train_data[columns_for_data]
