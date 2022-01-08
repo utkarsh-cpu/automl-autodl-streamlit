@@ -1,5 +1,6 @@
 import imp
 import streamlit as st
+from sklearn.model_selection import train_test_split
 import sklearn.datasets as sk
 import pandas as pd
 import numpy as np
@@ -49,12 +50,48 @@ with st.expander('Dataset'):
         is_test_file_exist=st.selectbox('Is there a testing dataset',['No','Yes'])
         if(is_test_file_exist=='Yes'):
             data_test_file=st.file_uploader("Upload Testing Dataset")
-        if(data_train_file is not None):
+        if(data_train_file is not None and is_val_file_exist=='No' and is_test_file_exist=='No'):
             train_data=pd.read_csv(data_train_file)
             columns_for_data=st.multiselect('Which columns are required for training and testing',train_data.columns)
             columns_for_values=st.multiselect('Which columns are output columns',train_data.columns)
             actual_data=train_data[columns_for_data]
             actual_values=train_data[columns_for_values]
+            data_train_val,data_test,value_train_val,value_test=train_test_split(actual_data,actual_values,train_size=0.7,random_state=42)
+            data_train,data_val,value_train,value_val=train_test_split(data_train_val,value_train_val,train_size=0.7,random_state=42)
+        elif(data_train_file is not None and is_val_file_exist=='Yes' and is_test_file_exist=='No'):
+            train_data=pd.read_csv(data_train_file)
+            val_data=pd.read_csv(data_val_file)
+            columns_for_data=st.multiselect('Which columns are required for training and testing',train_data.columns)
+            columns_for_values=st.multiselect('Which columns are output columns',train_data.columns)
+            actual_data=train_data[columns_for_data]
+            data_val=val_data[columns_for_data]
+            actual_values=train_data[columns_for_values]
+            value_val=val_data[columns_for_values]
+            data_train,data_test,value_train,value_test=train_test_split(actual_data,actual_values,train_size=0.7,random_state=42)
+        elif(data_train_file is not None and is_val_file_exist=='No' and is_test_file_exist=='Yes'):
+            train_data=pd.read_csv(data_train_file)
+            test_data=pd.read_csv(data_test_file)
+            columns_for_data=st.multiselect('Which columns are required for training and testing',train_data.columns)
+            columns_for_values=st.multiselect('Which columns are output columns',train_data.columns)
+            actual_data=train_data[columns_for_data]
+            data_test=test_data[columns_for_data]
+            actual_values=train_data[columns_for_values]
+            value_test=test_data[columns_for_values]
+            data_train,data_val,value_train,value_val=train_test_split(actual_data,actual_values,train_size=0.7,random_state=42)
+        elif(data_train_file is not None and is_val_file_exist=='Yes' and is_test_file_exist=='Yes'):
+            train_data=pd.read_csv(data_train_file)
+            test_data=pd.read_csv(data_test_file)
+            val_data=pd.read_csv(data_val_file)
+            columns_for_data=st.multiselect('Which columns are required for training and testing',train_data.columns)
+            columns_for_values=st.multiselect('Which columns are output columns',train_data.columns)
+            data_train=train_data[columns_for_data]
+            data_val=val_data[columns_for_data]
+            data_test=test_data[columns_for_data]
+            value_train=train_data[columns_for_values]
+            value_test=test_data[columns_for_values]
+            value_val=val_data[columns_for_values]
+        elif(data_train_file is not None):
+            st.error('No dataset uploaded')
         
 
     if(is_dataset_uploaded_or_dataset_from_libraries=='Preconceived Dataset'):
@@ -67,6 +104,8 @@ with st.expander('Dataset'):
         elif  option!='None':
            actual_data=datasets[option].frame[columns_for_data]
            actual_values=datasets[option].frame[columns_for_values]
+        data_train_val,data_test,value_train_val,value_test=train_test_split(actual_data,actual_values,train_size=0.7,random_state=42)
+        data_train,data_val,value_train,value_val=train_test_split(data_train_val,value_train_val,train_size=0.7,random_state=42)
     c_or_r=dict({'Classification':'c','Regression':'r'})
     c_r=st.radio('Type of dataset: ',c_or_r.keys())
     c_r=c_or_r[c_r]
@@ -92,12 +131,12 @@ if(method_type=='AutoML'):
         new_epoch=st.number_input("No. of Epoch",min_value=1)
         if st.button('Find the best model'):
             if(c_r=='c'):
-                predicted_values,metrics_value=autokeras_classification(actual_data[:int(0.7*len(datasets[option].data)),:],actual_values[:int(0.7*len(datasets[option].data))],datasets[option].data[:int(0.3*len(datasets[option].data)),:],datasets[option].target[:int(0.3*len(datasets[option].data))],num_of_trial,new_epoch,new_Loss_func,new_keys_of_metric_function)
+                predicted_values,metrics_value=autokeras_classification(data_train,value_train,data_val,value_val,data_test,value_test,num_of_trial,new_epoch,new_Loss_func,new_keys_of_metric_function)
                 metrics_value=pd.DataFrame(metrics_value)
                 st.dataframe(metrics_value)
             
             if(c_r=='r'):
-                predicted_values,metrics_value,best_model=autokeras_regression(actual_data[:int(0.7*len(datasets[option].data)),:],actual_values[:int(0.7*len(datasets[option].data))],datasets[option].data[:int(0.3*len(datasets[option].data)),:],datasets[option].target[:int(0.3*len(datasets[option].data))],num_of_trial,new_epoch,new_Loss_func,new_keys_of_metric_function)
+                predicted_values,metrics_value,best_model=autokeras_regression(data_train,value_train,data_val,value_val,data_test,value_test,num_of_trial,new_epoch,new_Loss_func,new_keys_of_metric_function)
                 metrics_value=pd.DataFrame(metrics_value)
                 new_columns=[]
                 new_columns.append(new_Loss_func)
@@ -127,11 +166,11 @@ if(method_type==('Custom')):
     epoch=st.number_input("No. of Epoch",min_value=1)
 
     if st.button('Run the given model'):
-        model=model_making(actual_data[:int(0.7*len(datasets[option].data)),:],(actual_values[:int(0.7*len(datasets[option].data))]),nooflayers,length,activation_function,c_r,Optimizers,Loss_func,keys_of_metric_function,epoch)
-        fit=model.fit(actual_data[:int(0.7*len(datasets[option].data)),:],encoded_data(actual_values[:int(0.7*len(datasets[option].data))]),epochs=epoch,validation_split=0.3)
+        model=model_making(data_train,value_train,nooflayers,length,activation_function,c_r,Optimizers,Loss_func,keys_of_metric_function,epoch)
+        fit=model.fit(data_train,encoded_data(value_train),epochs=epoch,validation_split=0.3)
         history = pd.DataFrame.from_dict(fit.history)
         st.dataframe(history)
-        val=model.evaluate(actual_data[int(0.7*len(datasets[option].data)):,:],encoded_data(actual_values[int(0.7*len(datasets[option].data)):]),verbose=1)
+        val=model.evaluate(data_val,encoded_data(value_val),verbose=1)
         st.write(val)
 
 
