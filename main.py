@@ -97,15 +97,15 @@ with st.expander('Dataset'):
     if(is_dataset_uploaded_or_dataset_from_libraries=='Preconceived Dataset'):
         datasets=dict({'None':None,'California Housing Dataset':sk.fetch_california_housing(as_frame=True),'Iris dataset':sk.load_iris(as_frame=True),'Diabetes datset':sk.load_diabetes(as_frame=True),'Wine Dataset':sk.load_wine(as_frame=True),'Linnerud Datset':sk.load_linnerud(as_frame=True)})
         option=st.selectbox("Choose the preconceived datatset",datasets.keys())
-        columns_for_data=st.multiselect('Which columns are required for training and testing',datasets[option].frame.columns)
-        columns_for_values=st.multiselect('Which columns are output columns',datasets[option].frame.columns)
         if option=='None':
            st.error('No dataset detected')
         elif  option!='None':
-           actual_data=datasets[option].frame[columns_for_data]
-           actual_values=datasets[option].frame[columns_for_values]
-        data_train_val,data_test,value_train_val,value_test=train_test_split(actual_data,actual_values,train_size=0.7,random_state=42)
-        data_train,data_val,value_train,value_val=train_test_split(data_train_val,value_train_val,train_size=0.7,random_state=42)
+            columns_for_data=st.multiselect('Which columns are required for training and testing',datasets[option].frame.columns)
+            columns_for_values=st.multiselect('Which columns are output columns',datasets[option].frame.columns)
+            actual_data=datasets[option].frame[columns_for_data]
+            actual_values=datasets[option].frame[columns_for_values]
+            data_train_val,data_test,value_train_val,value_test=train_test_split(actual_data,actual_values,train_size=0.7,random_state=42)
+            data_train,data_val,value_train,value_val=train_test_split(data_train_val,value_train_val,train_size=0.7,random_state=42)
     c_or_r=dict({'Classification':'c','Regression':'r'})
     c_r=st.radio('Type of dataset: ',c_or_r.keys())
     c_r=c_or_r[c_r]
@@ -177,7 +177,6 @@ if(method_type==('Custom')):
 
 
     
-
 
 
 
