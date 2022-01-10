@@ -10,6 +10,7 @@ from tensorflow import keras
 import matplotlib.pyplot as plt
 from model import model_making,encoded_data
 from autokerasmodel import autokeras_classification,autokeras_regression
+from imp_function import normalize, standization
 
 def methodofkeys(dict, search_iter):
     for iter1, iter2 in dict.items():
@@ -97,6 +98,7 @@ with st.expander('Dataset'):
     if(is_dataset_uploaded_or_dataset_from_libraries=='Preconceived Dataset'):
         datasets=dict({'None':None,'California Housing Dataset':sk.fetch_california_housing(as_frame=True),'Iris dataset':sk.load_iris(as_frame=True),'Diabetes datset':sk.load_diabetes(as_frame=True),'Wine Dataset':sk.load_wine(as_frame=True),'Linnerud Datset':sk.load_linnerud(as_frame=True)})
         option=st.selectbox("Choose the preconceived datatset",datasets.keys())
+        
         if option=='None':
            st.error('No dataset detected')
         elif  option!='None':
@@ -119,6 +121,7 @@ with st.expander('Dataset'):
         elif(c_r=='r'):
             st.write('No. of target variables = ',len(columns_for_values))  
         st.dataframe(actual_data.describe())
+        
     
 
 type_of_method=['None','AutoML','Custom']
@@ -131,8 +134,21 @@ if(method_type=='AutoML'):
         new_epoch=st.number_input("No. of Epoch",min_value=1)
         if st.button('Find the best model'):
             if(c_r=='c'):
-                predicted_values,metrics_value=autokeras_classification(data_train,value_train,data_val,value_val,data_test,value_test,num_of_trial,new_epoch,new_Loss_func,new_keys_of_metric_function)
+                predicted_values,metrics_value,best_model=autokeras_classification(data_train,value_train,data_val,value_val,data_test,value_test,num_of_trial,new_epoch,new_Loss_func,new_keys_of_metric_function)
                 metrics_value=pd.DataFrame(metrics_value)
+                new_columns=[]
+                new_columns.append(new_Loss_func)
+                for i in new_keys_of_metric_function:
+                    new_columns.append(i)
+                metrics_value['Type of Metrics']=new_columns
+                c = metrics_value.columns
+                metrics_value = metrics_value[c[np.r_[1, 0, 2:len(c)]]]
+                xr = (np.argmax(predicted_values, axis=1))
+                fig, ax = plt.subplots()
+                ax.scatter(np.array((value_test)),xr)
+                xr=pd.DataFrame(xr,columns=['Predicted Class'])
+                st.pyplot(fig)
+                st.dataframe(pd.concat([value_test.reset_index(),xr],axis=1,ignore_index=True).set_axis(['Level','Actual Value','Predicted Value'],axis=1))
                 st.dataframe(metrics_value)
             
             if(c_r=='r'):
@@ -145,6 +161,12 @@ if(method_type=='AutoML'):
                 metrics_value['Type of Metrics']=new_columns
                 c = metrics_value.columns
                 metrics_value = metrics_value[c[np.r_[1, 0, 2:len(c)]]]
+                st.dataframe(np.array(normalize(value_test)))
+                st.dataframe(predicted_values)
+                fig, ax = plt.subplots(3)
+                for i in range(3):
+                    ax[i].scatter(np.array(normalize(value_test))[:,i],predicted_values[:,i])
+                st.pyplot(fig)
                 st.dataframe(best_model.summary())
                 st.dataframe(metrics_value)
 
