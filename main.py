@@ -1,4 +1,3 @@
-import imp
 import streamlit as st
 from sklearn.model_selection import train_test_split
 import sklearn.datasets as sk
@@ -10,7 +9,9 @@ from tensorflow import keras
 import matplotlib.pyplot as plt
 from model import model_making,encoded_data
 from autokerasmodel import autokeras_classification,autokeras_regression
-from imp_function import normalize, standization
+from imp_function import normalize,standization,get_model_summary
+
+
 
 def methodofkeys(dict, search_iter):
     for iter1, iter2 in dict.items():
@@ -43,6 +44,11 @@ st.set_page_config(page_title='Neural Network Playground', page_icon='🏛️')
 st.title("Neural Network Playground")
 with st.expander('Dataset'): 
     is_dataset_uploaded_or_dataset_from_libraries=st.radio("Upload Dataset or Preconceived Dataset",['Upload Dataset','Preconceived Dataset'])
+    c_or_r=dict({'Classification':'c','Regression':'r'})
+    c_r=st.radio('Type of dataset: ',c_or_r.keys())
+    c_r=c_or_r[c_r]
+    is_data_normalized=st.selectbox('Is dataset to be normalised',['No','Yes'])
+    is_data_standardized=st.selectbox('Is dataset to be standardized',['No','Yes'])
     if(is_dataset_uploaded_or_dataset_from_libraries=='Upload Dataset'):
         data_train_file=st.file_uploader("Upload Training Dataset")
         is_val_file_exist=st.selectbox('Is there a validation dataset',['No','Yes'])
@@ -98,7 +104,6 @@ with st.expander('Dataset'):
     if(is_dataset_uploaded_or_dataset_from_libraries=='Preconceived Dataset'):
         datasets=dict({'None':None,'California Housing Dataset':sk.fetch_california_housing(as_frame=True),'Iris dataset':sk.load_iris(as_frame=True),'Diabetes datset':sk.load_diabetes(as_frame=True),'Wine Dataset':sk.load_wine(as_frame=True),'Linnerud Datset':sk.load_linnerud(as_frame=True)})
         option=st.selectbox("Choose the preconceived datatset",datasets.keys())
-        
         if option=='None':
            st.error('No dataset detected')
         elif  option!='None':
@@ -108,9 +113,6 @@ with st.expander('Dataset'):
             actual_values=datasets[option].frame[columns_for_values]
             data_train_val,data_test,value_train_val,value_test=train_test_split(actual_data,actual_values,train_size=0.7,random_state=42)
             data_train,data_val,value_train,value_val=train_test_split(data_train_val,value_train_val,train_size=0.7,random_state=42)
-    c_or_r=dict({'Classification':'c','Regression':'r'})
-    c_r=st.radio('Type of dataset: ',c_or_r.keys())
-    c_r=c_or_r[c_r]
     button_1=st.button("Basic information about data")
     if(button_1):
         st.write('Type of Dataset = '+methodofkeys(c_or_r,c_r))
@@ -148,11 +150,12 @@ if(method_type=='AutoML'):
                 ax.scatter(np.array((value_test)),xr)
                 xr=pd.DataFrame(xr,columns=['Predicted Class'])
                 st.pyplot(fig)
+                st.write(get_model_summary(best_model))
                 st.dataframe(pd.concat([value_test.reset_index(),xr],axis=1,ignore_index=True).set_axis(['Level','Actual Value','Predicted Value'],axis=1))
                 st.dataframe(metrics_value)
             
             if(c_r=='r'):
-                predicted_values,metrics_value,best_model=autokeras_regression(data_train,value_train,data_val,value_val,data_test,value_test,num_of_trial,new_epoch,new_Loss_func,new_keys_of_metric_function)
+                predicted_values,metrics_value,best_model=autokeras_regression(standization(data_train),standization(value_train),standization(data_val),standization(value_val),standization(data_test),standization(value_test),num_of_trial,new_epoch,new_Loss_func,new_keys_of_metric_function)
                 metrics_value=pd.DataFrame(metrics_value)
                 new_columns=[]
                 new_columns.append(new_Loss_func)
@@ -161,13 +164,14 @@ if(method_type=='AutoML'):
                 metrics_value['Type of Metrics']=new_columns
                 c = metrics_value.columns
                 metrics_value = metrics_value[c[np.r_[1, 0, 2:len(c)]]]
-                st.dataframe(np.array(normalize(value_test)))
+                st.dataframe(np.array(standization(value_test)))
                 st.dataframe(predicted_values)
                 fig, ax = plt.subplots(3)
                 for i in range(3):
-                    ax[i].scatter(np.array(normalize(value_test))[:,i],predicted_values[:,i])
+                    ax[i].scatter(np.array(standization(value_test))[:,i],predicted_values[:,i])
+                    ax[i].plot(np.linspace(-2,2,50),np.linspace(-2,2,50))
                 st.pyplot(fig)
-                st.dataframe(best_model.summary())
+                st.dataframe(get_model_summary(best_model))
                 st.dataframe(metrics_value)
 
 if(method_type==('Custom')):
