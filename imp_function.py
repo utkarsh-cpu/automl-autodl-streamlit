@@ -40,3 +40,22 @@ def get_model_summary(model):
                      header[2] : int(entry[2])}
     
     return df
+
+def detect_and_removing_outliers(dataset):
+    for i in dataset.columns:
+        Q1 = np.percentile(dataset[i], 25,
+                   interpolation = 'midpoint')
+        Q3 = np.percentile(dataset[i], 75,
+                   interpolation = 'midpoint')
+        IQR = Q3 - Q1
+        upper = np.where(dataset[i] >= (Q3+1.5*IQR))
+        lower = np.where(dataset[i] <= (Q1-1.5*IQR))
+        dataset.drop(upper[0], inplace = True)
+        dataset.drop(lower[0], inplace = True)
+    new_shape=(dataset.shape)
+    return new_shape,dataset
+
+def methodofkeys(dict, search_iter):
+    for iter1, iter2 in dict.items():
+        if iter2 == search_iter:
+            return iter1
