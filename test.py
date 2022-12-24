@@ -200,6 +200,7 @@ if(st.session_state.position=='Training and Finding Model'):
             fit=model.fit(st.session_state.data_train,encoded_data(st.session_state.value_train),epochs=epoch,validation_split=0.3)
             history = pd.DataFrame.from_dict(fit.history)
             st.dataframe(history)
+        
     
     
         

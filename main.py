@@ -40,7 +40,8 @@ list_of_metrics_func['sparse_categorical_accuracy']='sparse_categorical_accuracy
 list_of_metrics_func['sparse_top_k_categorical_accuracy']='sparse_top_k_categorical_accuracy :  Computes how often integer targets are in the top K predictions.'
 list_of_metrics_func['categorical_accuracy']='categorical_accuracy(...): Calculates how often predictions match one-hot labels.'
 list_of_metrics_func['accuracy']='accuracy(...): Calculates how often predictions equal labels.'
-st.set_page_config(page_title='Neural Network Playground', page_icon='🏛️')
+
+
 st.title("Neural Network Playground")
 with st.expander('Dataset'): 
     is_dataset_uploaded_or_dataset_from_libraries=st.radio("Upload Dataset or Preconceived Dataset",['Upload Dataset','Preconceived Dataset'])
