@@ -41,7 +41,7 @@ This project provides a user-friendly interface for utilizing AutoML and AutoDL 
 
 ## Installation
 
-1. Clone the repository: `git clone https://github.com/your-username/automl-autodl-streamlit.git`
+1. Clone the repository: `git clone https://github.com/utkarsh-cpu/automl-autodl-streamlit.git`
 2. Install dependencies: `pip install -r requirements.txt`
 
 ## Usage
