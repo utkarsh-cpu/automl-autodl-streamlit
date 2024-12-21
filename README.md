@@ -1,6 +1,6 @@
 # AutoML and AutoDL Project
 
-This project provides a user-friendly interface for utilizing AutoML and AutoDL capabilities, built with Streamlit. It allows users to easily train machine learning and deep learning models without extensive coding or expertise.
+This project provides a user-friendly interface for utilizing AutoML and AutoDL capabilities and also create custom code without coding anything, built with Streamlit. It allows users to easily train machine learning and deep learning models without extensive coding or expertise.
 
 ## Features
 
